@@ -5,56 +5,77 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
+import yaml
 import datetime
 
 base_url = 'http://academico.funcern.br/'
 driver = webdriver.Chrome()
 hdriver = WebDriverWait(driver, 15)
-data_base = datetime.date(2016, 2, 12)
-data_fim = datetime.date(2016, 6, 24)
-dias = {
+start_date = datetime.date(2016, 2, 12)
+end_date = datetime.date(2016, 6, 24)
+all_week_days = {
     'SEG/QUA': [0, 2],
     'TER/QUI': [1, 3],
     'SÁBADO': [5],
 }
-feriados = [
+holidays = [
     datetime.date(2016, 4, 21),
     datetime.date(2016, 5, 26),
     datetime.date(2016, 6, 22),
 ]
+user = None
+password = None
 
 
-def date_range(start, stop, skip=1):
-    daycount = (stop - start).days
-    for i in range(0, daycount, skip):
-        yield start + datetime.timedelta(days=i)
+def load_config():
+    global holidays, start_date, end_date, user, password
+    stream = open('config.yaml', 'r')
+    yml = yaml.load(stream)
+    holidays = yml['feriados']
+    start_date = yml['data_inicio_semestre']
+    end_date = yml['data_fim_semestre']
+    user = yml['usuario']
+    password = yml['senha']
+    stream.close()
 
 
-def get_dias_aula(dias):
-    weekdays = [d for d in date_range(data_base, data_fim) if d.weekday() in dias and d not in feriados]
-    return weekdays
+def start():
+    iterate_classes()
 
 
-def login():
+def setup():
+    load_config()
     driver.get(base_url)
     driver.implicitly_wait(30)
     driver.find_element_by_name("j_username").clear()
-    driver.find_element_by_name("j_username").send_keys("paulotasso")
+    driver.find_element_by_name("j_username").send_keys(user)
     driver.find_element_by_name("j_password").clear()
-    driver.find_element_by_name("j_password").send_keys("pauloyu1")
+    driver.find_element_by_name("j_password").send_keys(password)
     driver.find_element_by_css_selector("input[type=\"submit\"]").click()
 
 
-def entrar_na_turma():
+def get_date_range(begin, end, skip=1):
+    daycount = (end - begin).days
+    for i in range(0, daycount, skip):
+        yield begin + datetime.timedelta(days=i)
+
+
+def get_class_dates(weekdays):
+    dates = [d for d in get_date_range(start_date, end_date) if d.weekday() in weekdays and d not in holidays]
+    return dates
+
+
+def iterate_classes():
     print('entrar na turma')
     trs = driver.find_element_by_id("formGeral:j_id28:tb").find_elements_by_tag_name("tr")
     for (index, tr) in enumerate(trs):
         tr = driver.find_element_by_id("formGeral:j_id28:tb").find_elements_by_tag_name("tr")[index]
         tr.find_elements_by_tag_name("td")[4].find_element_by_tag_name("a").click()
-        cadastrar_aula()
+        register_lecture()
 
 
-def verificar_fim_aulas():
+# noinspection PyBroadException
+def check_class_finished():
     print("verificacao")
     try:
         node = driver.find_element_by_xpath(
@@ -67,34 +88,31 @@ def verificar_fim_aulas():
         return False
 
 
-def cadastrar_aula():
-    while not verificar_fim_aulas():
-        aulanumero = int(
+# noinspection PyBroadException
+def register_lecture():
+    while not check_class_finished():
+        lecture_number = int(
             driver.find_element_by_id("formListaAlunos:paginacao").find_element_by_tag_name("div").text.split()[0])
-        dias_semana = dias[driver.find_element_by_css_selector("#j_id35 > span").text]
-        aulas = get_dias_aula(dias_semana)
-        print(aulanumero)
-        print(dias_semana)
-        print(aulas)
-        print(aulas[aulanumero])
+        lecture_week_days = all_week_days[driver.find_element_by_css_selector("#j_id35 > span").text]
+        lecture_dates = get_class_dates(lecture_week_days)
 
-        aula = aulas[aulanumero]
+        week_day = lecture_dates[lecture_number]
 
         hdriver.until(EC.visibility_of_element_located((By.ID, "formListaAlunos:linkCadastrar")))
         driver.find_element_by_id("formListaAlunos:linkCadastrar").click()
         hdriver.until(EC.visibility_of_element_located((By.ID, "painelDeEdicaoContainer")))
         print('Painel apareceu!')
 
-        avaliacao = False
+        evaluation = False
         try:
             driver.implicitly_wait(1)
             if driver.find_element_by_css_selector(
                     "#painelDeEdicaoContentTable > tbody > tr:nth-child(2) > td > div > h3").text == 'Atenção!':
-                avaliacao = True
+                evaluation = True
         except Exception:
             pass
 
-        if avaliacao:
+        if evaluation:
             # fechar painel
             driver.find_element_by_id("j_id198:j_id199").click()
             hdriver.until(EC.invisibility_of_element_located((By.ID, "painelDeEdicaoContainer")))
@@ -149,7 +167,7 @@ def cadastrar_aula():
             driver.find_element_by_id("j_id210:assuntoPart").clear()
             driver.find_element_by_id("j_id210:assuntoPart").send_keys("Exercício")
             driver.find_element_by_id("j_id210:j_id228InputDate").clear()
-            driver.find_element_by_id("j_id210:j_id228InputDate").send_keys(aula.strftime("%d/%m/%Y"))
+            driver.find_element_by_id("j_id210:j_id228InputDate").send_keys(week_day.strftime("%d/%m/%Y"))
 
             driver.find_element_by_id("j_id210:j_id257").click()
             sleep(1)
@@ -163,5 +181,5 @@ def cadastrar_aula():
 
 
 if __name__ == "__main__":
-    login()
-    entrar_na_turma()
+    setup()
+    start()
