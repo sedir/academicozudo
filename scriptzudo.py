@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
@@ -48,6 +44,7 @@ def login():
     driver.find_element_by_name("j_password").send_keys("pauloyu1")
     driver.find_element_by_css_selector("input[type=\"submit\"]").click()
 
+
 def entrar_na_turma():
     print('entrar na turma')
     trs = driver.find_element_by_id("formGeral:j_id28:tb").find_elements_by_tag_name("tr")
@@ -62,7 +59,6 @@ def verificar_fim_aulas():
     try:
         node = driver.find_element_by_xpath(
             "//*[@id=\"formListaAlunos:j_id49_body\"]/span/div/a")
-        print(node)
         if node.text.startswith("Indicar final"):
             return True
         else:
@@ -70,10 +66,11 @@ def verificar_fim_aulas():
     except Exception:
         return False
 
-def cadastrar_aula():
 
+def cadastrar_aula():
     while not verificar_fim_aulas():
-        aulanumero = int(driver.find_element_by_id("formListaAlunos:paginacao").find_element_by_tag_name("div").text.split()[0])
+        aulanumero = int(
+            driver.find_element_by_id("formListaAlunos:paginacao").find_element_by_tag_name("div").text.split()[0])
         dias_semana = dias[driver.find_element_by_css_selector("#j_id35 > span").text]
         aulas = get_dias_aula(dias_semana)
         print(aulanumero)
@@ -91,7 +88,8 @@ def cadastrar_aula():
         avaliacao = False
         try:
             driver.implicitly_wait(1)
-            if driver.find_element_by_css_selector("#painelDeEdicaoContentTable > tbody > tr:nth-child(2) > td > div > h3").text == 'Atenção!':
+            if driver.find_element_by_css_selector(
+                    "#painelDeEdicaoContentTable > tbody > tr:nth-child(2) > td > div > h3").text == 'Atenção!':
                 avaliacao = True
         except Exception:
             pass
@@ -106,7 +104,8 @@ def cadastrar_aula():
             driver.find_element_by_id("formListaAlunos:linkNotasParticipacao").click()
 
             sleep(2)
-            buttons = driver.find_element_by_css_selector("#formLancamentoNPs > div:nth-child(4)").find_elements_by_tag_name("input")
+            buttons = driver.find_element_by_css_selector(
+                "#formLancamentoNPs > div:nth-child(4)").find_elements_by_tag_name("input")
 
             for btn in buttons:
                 try:
