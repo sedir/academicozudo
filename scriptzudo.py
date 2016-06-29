@@ -51,7 +51,7 @@ def prep_logs():
 
 def load_config():
     global holidays, start_date, end_date, user, password, application_path
-    log.info('Carregando arquivo de configuração...')
+    log.info('Carregando arquivo de configuracao...')
     # determine if application is a script file or frozen exe
     if getattr(sys, 'frozen', False):
         application_path = os.path.dirname(sys.executable)
@@ -68,26 +68,27 @@ def load_config():
         user = yml['usuario']
         password = yml['senha']
         stream.close()
-        log.info('Configuração aplicada com sucesso.')
+        log.info('Configuracao aplicada com sucesso.')
     except Exception:
-        log.error('Erro ao abrir arquivo de configuração config.yaml. Verifique e tente novamente.')
+        log.error('Erro ao abrir arquivo de configuracao config.yaml. Verifique e tente novamente.')
         raise
 
 
 def start():
-    log.info('Iniciando automação...')
+    log.info('Iniciando automacao...')
     iterate_classes()
 
 
 # noinspection PyBroadException
 def login():
     driver.get(base_url)
-    driver.implicitly_wait(2)
+    driver.implicitly_wait(0)
     driver.find_element_by_name("j_username").clear()
     driver.find_element_by_name("j_username").send_keys(user)
     driver.find_element_by_name("j_password").clear()
     driver.find_element_by_name("j_password").send_keys(password)
     driver.find_element_by_css_selector("input[type=\"submit\"]").click()
+    driver.implicitly_wait(2)
 
     try:
         driver.find_element_by_css_selector("#corpo > p")
@@ -116,7 +117,7 @@ def iterate_classes():
         tds[4].find_element_by_tag_name("a").click()
         register_lecture()
         log.info('Turma finalizada.')
-    log.info('Automação concluída.')
+    log.info('Automacao concluida.')
 
 
 # noinspection PyBroadException
@@ -125,7 +126,7 @@ def check_class_finished():
         node = driver.find_element_by_xpath(
             "//*[@id=\"formListaAlunos:j_id49_body\"]/span/div/a")
         if node.text.startswith("Indicar final"):
-            log.info('Esta turma atingiu a carga-horária mínima.')
+            log.info('Esta turma atingiu a carga-horaria minima.')
             return True
         else:
             return False
@@ -153,7 +154,7 @@ def register_lecture():
             if driver.find_element_by_css_selector(
                     "#painelDeEdicaoContentTable > tbody > tr:nth-child(2) > td > div > h3").text == 'Atenção!':
                 evaluation = True
-                log.info('Cadastro de aulas indisponível.')
+                log.info('Cadastro de aulas indisponivel.')
 
         except Exception:
             pass
@@ -163,7 +164,7 @@ def register_lecture():
             driver.find_element_by_id("j_id198:j_id199").click()
             hdriver.until(EC.invisibility_of_element_located((By.ID, "painelDeEdicaoContainer")))
 
-            log.info('Aplicando notas de participação...')
+            log.info('Aplicando notas de participacao...')
 
             driver.find_element_by_id("formListaAlunos:linkNotasParticipacao").click()
 
@@ -204,7 +205,7 @@ def register_lecture():
 
             driver.find_element_by_id("j_id262:j_id263").click()
             hdriver.until(EC.invisibility_of_element_located((By.ID, "painelNotasParticipacaoContainer")))
-            log.info('Notas de participação aplicadas. Continuando o processo...')
+            log.info('Notas de participacao aplicadas. Continuando o processo...')
 
         else:
             log.info('Cadastrando aula %d para a data %s...', lecture_number + 1, week_day.strftime("%d/%m/%Y"))
@@ -227,19 +228,25 @@ def register_lecture():
 
 
 if __name__ == "__main__":
-    prep_logs()
-    load_config()
     try:
-        if login():
-            start()
-        else:
-            log.error('Usuário e/ou senha incorretos. Ajuste o arquivo de configuração e tente novamente.')
-    except Exception:
-        log.error(
-            'Uma falha generalizada forçou o script a encerrar. Pilha de exceção disponível no arquivo exception.log.')
-        with open(os.path.join(application_path, 'exception.log'), 'a') as fe:
-            traceback.print_exc(file=fe)
-    try:
-        driver.quit()
-    except Exception:
-        pass
+        prep_logs()
+        load_config()
+        try:
+            if login():
+                start()
+            else:
+                log.error('Usuario e/ou senha incorretos. Ajuste o arquivo de configuracao e tente novamente.')
+        except Exception:
+            log.error(
+                'Uma falha generalizada forcou o script a encerrar. Pilha de excecao disponivel no arquivo exception.log.')
+            with open(os.path.join(application_path, 'exception.log'), 'a') as fe:
+                traceback.print_exc(file=fe)
+        try:
+            driver.quit()
+        except Exception:
+            pass
+        print('Pressione Enter para sair...')
+        input()
+    except SystemExit as e:
+        print('Pressione Enter para sair...')
+        input()
