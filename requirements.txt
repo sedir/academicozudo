@@ -2,7 +2,7 @@ altgraph==0.12
 appnope==0.1.0
 backports.shutil-get-terminal-size==1.0.0
 decorator==4.0.9
-gnureadline==6.3.3
+pyreadline
 ipython==4.2.0
 ipython-genutils==0.1.0
 macholib==1.7
@@ -11,7 +11,6 @@ pbr==1.10.0
 pexpect==4.1.0
 pickleshare==0.7.2
 ptyprocess==0.5.1
-py2app==0.10
 PyInstaller==3.2
 PyYAML==3.11
 selenium==2.53.6
