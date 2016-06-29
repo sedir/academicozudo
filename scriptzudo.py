@@ -7,51 +7,93 @@ from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 import yaml
 import datetime
+import os
+import sys
+import logging
+import traceback
 
+sys.path.append(os.getcwd())
 base_url = 'http://academico.funcern.br/'
-driver = webdriver.Chrome()
+driver = webdriver.Firefox()
 hdriver = WebDriverWait(driver, 15)
-start_date = datetime.date(2016, 2, 12)
-end_date = datetime.date(2016, 6, 24)
+start_date = None
+end_date = None
 all_week_days = {
     'SEG/QUA': [0, 2],
     'TER/QUI': [1, 3],
     'SÁBADO': [5],
 }
-holidays = [
-    datetime.date(2016, 4, 21),
-    datetime.date(2016, 5, 26),
-    datetime.date(2016, 6, 22),
-]
+holidays = []
 user = None
 password = None
+log = None
+application_path = None
+
+
+def prep_logs():
+    global log
+    log = logging.getLogger('academicozudo')
+    log.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler('debug.log')
+    fh.setLevel(logging.DEBUG)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    fh.setFormatter(formatter)
+    # add the handlers to logger
+    log.addHandler(ch)
+    log.addHandler(fh)
 
 
 def load_config():
-    global holidays, start_date, end_date, user, password
-    stream = open('config.yaml', 'r')
-    yml = yaml.load(stream)
-    holidays = yml['feriados']
-    start_date = yml['data_inicio_semestre']
-    end_date = yml['data_fim_semestre']
-    user = yml['usuario']
-    password = yml['senha']
-    stream.close()
+    global holidays, start_date, end_date, user, password, application_path
+    log.info('Carregando arquivo de configuração...')
+    # determine if application is a script file or frozen exe
+    if getattr(sys, 'frozen', False):
+        application_path = os.path.dirname(sys.executable)
+    elif __file__:
+        application_path = os.path.dirname(__file__)
+
+    try:
+        config_path = os.path.join(application_path, 'config.yaml')
+        stream = open(config_path, 'r')
+        yml = yaml.load(stream)
+        holidays = yml['feriados']
+        start_date = yml['data_inicio_semestre']
+        end_date = yml['data_fim_semestre']
+        user = yml['usuario']
+        password = yml['senha']
+        stream.close()
+        log.info('Configuração aplicada com sucesso.')
+    except Exception:
+        log.error('Erro ao abrir arquivo de configuração config.yaml. Verifique e tente novamente.')
+        raise
 
 
 def start():
+    log.info('Iniciando automação...')
     iterate_classes()
 
 
-def setup():
-    load_config()
+# noinspection PyBroadException
+def login():
     driver.get(base_url)
-    driver.implicitly_wait(30)
+    driver.implicitly_wait(2)
     driver.find_element_by_name("j_username").clear()
     driver.find_element_by_name("j_username").send_keys(user)
     driver.find_element_by_name("j_password").clear()
     driver.find_element_by_name("j_password").send_keys(password)
     driver.find_element_by_css_selector("input[type=\"submit\"]").click()
+
+    try:
+        driver.find_element_by_css_selector("#corpo > p")
+        return False
+    except Exception:
+        return True
 
 
 def get_date_range(begin, end, skip=1):
@@ -66,21 +108,24 @@ def get_class_dates(weekdays):
 
 
 def iterate_classes():
-    print('entrar na turma')
     trs = driver.find_element_by_id("formGeral:j_id28:tb").find_elements_by_tag_name("tr")
     for (index, tr) in enumerate(trs):
         tr = driver.find_element_by_id("formGeral:j_id28:tb").find_elements_by_tag_name("tr")[index]
-        tr.find_elements_by_tag_name("td")[4].find_element_by_tag_name("a").click()
+        tds = tr.find_elements_by_tag_name("td")
+        log.info('Entrando na turma %s / %s', tds[1].text, tds[0].text)
+        tds[4].find_element_by_tag_name("a").click()
         register_lecture()
+        log.info('Turma finalizada.')
+    log.info('Automação concluída.')
 
 
 # noinspection PyBroadException
 def check_class_finished():
-    print("verificacao")
     try:
         node = driver.find_element_by_xpath(
             "//*[@id=\"formListaAlunos:j_id49_body\"]/span/div/a")
         if node.text.startswith("Indicar final"):
+            log.info('Esta turma atingiu a carga-horária mínima.')
             return True
         else:
             return False
@@ -101,7 +146,6 @@ def register_lecture():
         hdriver.until(EC.visibility_of_element_located((By.ID, "formListaAlunos:linkCadastrar")))
         driver.find_element_by_id("formListaAlunos:linkCadastrar").click()
         hdriver.until(EC.visibility_of_element_located((By.ID, "painelDeEdicaoContainer")))
-        print('Painel apareceu!')
 
         evaluation = False
         try:
@@ -109,6 +153,8 @@ def register_lecture():
             if driver.find_element_by_css_selector(
                     "#painelDeEdicaoContentTable > tbody > tr:nth-child(2) > td > div > h3").text == 'Atenção!':
                 evaluation = True
+                log.info('Cadastro de aulas indisponível.')
+
         except Exception:
             pass
 
@@ -116,9 +162,9 @@ def register_lecture():
             # fechar painel
             driver.find_element_by_id("j_id198:j_id199").click()
             hdriver.until(EC.invisibility_of_element_located((By.ID, "painelDeEdicaoContainer")))
-            print('Painel desapareceu!')
 
-            print('tem que fazer a avaliação')
+            log.info('Aplicando notas de participação...')
+
             driver.find_element_by_id("formListaAlunos:linkNotasParticipacao").click()
 
             sleep(2)
@@ -132,7 +178,7 @@ def register_lecture():
                         driver.implicitly_wait(3)  # seconds
                         break
                 except Exception:
-                    print('erro no elemento')
+                    pass
 
             sleep(1)
 
@@ -152,16 +198,16 @@ def register_lecture():
                         btn.click()
                         driver.implicitly_wait(3)  # seconds
                 except Exception:
-                    print('erro no elemento')
+                    pass
 
             sleep(5)
 
             driver.find_element_by_id("j_id262:j_id263").click()
             hdriver.until(EC.invisibility_of_element_located((By.ID, "painelNotasParticipacaoContainer")))
-            print('Painel desapareceu!')
+            log.info('Notas de participação aplicadas. Continuando o processo...')
 
         else:
-            print('vamos cadastrar a aula! =D')
+            log.info('Cadastrando aula %d para a data %s...', lecture_number + 1, week_day.strftime("%d/%m/%Y"))
             driver.find_element_by_id("j_id210:assunto").clear()
             driver.find_element_by_id("j_id210:assunto").send_keys("Gramática")
             driver.find_element_by_id("j_id210:assuntoPart").clear()
@@ -171,15 +217,29 @@ def register_lecture():
 
             driver.find_element_by_id("j_id210:j_id257").click()
             sleep(1)
+            log.info('Aula cadastrada.')
 
             # fechar painel
             driver.find_element_by_id("j_id198:j_id199").click()
             hdriver.until(EC.invisibility_of_element_located((By.ID, "painelDeEdicaoContainer")))
-            print('Painel desapareceu!')
 
     driver.find_element_by_id("j_id16").find_element_by_tag_name("a").click()
 
 
 if __name__ == "__main__":
-    setup()
-    start()
+    prep_logs()
+    load_config()
+    try:
+        if login():
+            start()
+        else:
+            log.error('Usuário e/ou senha incorretos. Ajuste o arquivo de configuração e tente novamente.')
+    except Exception:
+        log.error(
+            'Uma falha generalizada forçou o script a encerrar. Pilha de exceção disponível no arquivo exception.log.')
+        with open(os.path.join(application_path, 'exception.log'), 'a') as fe:
+            traceback.print_exc(file=fe)
+    try:
+        driver.quit()
+    except Exception:
+        pass
