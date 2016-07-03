@@ -53,7 +53,6 @@ class ConfigDialog(QDialog):
         elif isinstance(comp, QLineEdit):
             val = comp.text()
         elif isinstance(comp, QListWidget):
-            print('teste')
             val = [datetime.datetime.strptime(comp.item(x).text(), '%a, %d/%m/%Y').date()
                    for x in range(0, comp.count())]
 
