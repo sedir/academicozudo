@@ -7,12 +7,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>457</width>
+    <width>466</width>
     <height>406</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Configurações gerais</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="3">
@@ -87,17 +90,10 @@
           <string>Feriados</string>
          </property>
          <layout class="QFormLayout" name="formLayout_3">
-          <item row="0" column="0" colspan="2">
-           <widget class="QListView" name="listView_feriados">
-            <property name="alternatingRowColors">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="button_adicionar_feriado">
               <property name="text">
                <string>Adicionar</string>
               </property>
@@ -107,13 +103,23 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_2">
+             <widget class="QPushButton" name="button_remover_feriado">
               <property name="text">
                <string>Remover</string>
               </property>
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QListWidget" name="listWidget_feriados">
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::InternalMove</enum>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
