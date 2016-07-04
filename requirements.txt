@@ -2,7 +2,6 @@ altgraph==0.12
 appnope==0.1.0
 backports.shutil-get-terminal-size==1.0.0
 decorator==4.0.9
-pyreadline
 ipython==4.2.0
 ipython-genutils==0.1.0
 macholib==1.7
