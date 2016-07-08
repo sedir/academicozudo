@@ -1,32 +1,23 @@
-import pip
-f = open('requirements.txt')
-_all_ = f.readlines()
-f.close()
+import sys
+import os
+from distutils.core import setup
+from Cython.Build import cythonize
+import install_deps
 
-f = open('requirements_windows.txt')
-windows = f.readlines()
-f.close()
+try:
+    from PyQt5 import uic
+    if not getattr(sys, 'frozen', False):
+        uic.compileUiDir('./ui')
+except:
+    pass
 
-f = open('requirements_linux.txt')
-linux = f.readlines()
-f.close()
+install_deps.main()
 
-f = open('requirements_darwin.txt')
-darwin = f.readlines()
-f.close()
+setup(
+    ext_modules=cythonize(["config.py", "ui/dialog*.py", "ui/window*.py"])
+)
 
-def install(packages):
-    for package in packages:
-        pip.main(['install', package])
-
-if __name__ == '__main__':
-
-    from sys import platform
-
-    install(_all_)
-    if platform == 'windows':
-        install(windows)
-    if platform == 'linux':
-        install(linux)
-    if platform == 'darwin':  # MacOS
-        install(darwin)
+for root, dirs, files in os.walk("."):
+    for file in files:
+        if file.endswith(".c"):
+            os.remove(os.path.join(root, file))
