@@ -23,11 +23,11 @@ Para isso, execute a linha de comando abaixo:
 
 ### Como rodar:
 
-`python main_ui.py`
+`python main.py`
 
 
 ### Como distribuir:
 
-`pyinstaller.exe --onefile --windowed main_ui.py`
+`pyinstaller.exe --onefile --windowed main.py`
 
 O executável compilado estará disponível na pasta `dist`

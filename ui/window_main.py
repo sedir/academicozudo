@@ -1,22 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'mainwindow.ui'
-#
-# Created by: PyQt5 UI code generator 5.6
-#
-# WARNING! All changes made in this file will be lost!
-
-import sys
-import locale
-
-from PyQt5 import uic
-
-
-if not getattr(sys, 'frozen', False):
-    uic.compileUiDir('./ui')
-
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox
-from PyQt5.QtCore import QLocale
+from PyQt5.QtWidgets import QMainWindow, QMessageBox
 from ui.window_main_raw import Ui_MainWindow
 from ui.dialog_config import ConfigDialog
 
@@ -40,13 +22,3 @@ class MainWindow(QMainWindow):
     def config(self):
         conf = ConfigDialog()
         conf.exec_()
-
-
-if __name__ == "__main__":
-    locale.setlocale(locale.LC_ALL, "pt_BR")
-    QLocale.setDefault(QLocale('pt_BR'))
-
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
