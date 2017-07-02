@@ -11,7 +11,7 @@ try:
 except:
     pass
 
-install_deps.main()
+#install_deps.main()
 
 setup(
     ext_modules=cythonize(["config.py", "ui/dialog*.py", "ui/window*.py"])

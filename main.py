@@ -8,6 +8,7 @@ if not getattr(sys, 'frozen', False):
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QLocale
+from ui import *
 from ui.window_main import MainWindow
 
 

@@ -59,18 +59,18 @@ def load_config():
         application_path = os.path.dirname(__file__)
 
     try:
-        config_path = os.path.join(application_path, 'config.yaml_old')
+        config_path = os.path.join(application_path, 'config.yaml')
         stream = open(config_path, 'r')
         yml = yaml.load(stream)
-        holidays = yml['feriados']
-        start_date = yml['data_inicio_semestre']
-        end_date = yml['data_fim_semestre']
-        user = yml['usuario']
-        password = yml['senha']
+        holidays = yml.holidays
+        start_date = yml.start_date
+        end_date = yml.end_date
+        user = yml.user
+        password = yml.password
         stream.close()
         log.info('Configuração aplicada com sucesso.')
     except Exception:
-        log.error('Erro ao abrir arquivo de configuração config.yaml_old. Verifique e tente novamente.')
+        log.error('Erro ao abrir arquivo de configuração config.yaml. Verifique e tente novamente.')
         raise
 
 
