@@ -20,5 +20,5 @@ Academicozudo é um script desenvolvido em Python para facilitar a realização 
 
 ### Como rodar:
 
-`python scriptzudo.py`
+`python main.py`
 
