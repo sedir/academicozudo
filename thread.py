@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
+from itertools import repeat
 import datetime
 import os
 import sys
@@ -22,7 +23,7 @@ elif __file__:
 
 class Threadzuda(Thread):
     def __init__(self, config, event_stop):
-        self.base_url = 'http://academico.funcern.br/'
+        self.base_url = 'http://academico.funcern.br/softEduc_GCI_academico/faces/paginas/restrito/redirecionamento.xhtml'
         self.log = logging.getLogger('academicozudo')
 
         self.holidays = None
@@ -98,9 +99,11 @@ class Threadzuda(Thread):
         for i in range(0, daycount, skip):
             yield begin + datetime.timedelta(days=i)
 
-    def get_class_dates(self, weekdays):
+    def get_class_dates(self, weekdays, duplicate=False):
         dates = [d for d in Threadzuda.get_date_range(self.start_date, self.end_date) if
                  d.weekday() in weekdays and d not in self.holidays]
+        if double:
+            dates = [x for item in dates for x in repeat(item, 2)]
         return dates
 
     def iterate_classes(self):
@@ -137,9 +140,7 @@ class Threadzuda(Thread):
                     "div").text.split()[0])
             lecture_week_days = self.config.all_week_days[
                 self.driver.find_element_by_css_selector("#j_id35 > span").text]
-            lecture_dates = self.get_class_dates(lecture_week_days)
-            if 5 in lecture_week_days:
-                lecture_dates *= 2
+            lecture_dates = self.get_class_dates(lecture_week_days, duplicate=5 in lecture_week_days)
 
             try:
                 week_day = lecture_dates[lecture_number]

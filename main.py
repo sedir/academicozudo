@@ -4,9 +4,9 @@ import locale
 from config import Configuration
 from thread import Threadzuda
 from threading import Event
+from log import ConsolePanelHandler
 
 locale.setlocale(locale.LC_ALL, 'pt_BR')
-from log import ConsolePanelHandler
 
 
 class RootWidget(FloatLayout):
