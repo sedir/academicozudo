@@ -102,7 +102,7 @@ class Threadzuda(Thread):
     def get_class_dates(self, weekdays, duplicate=False):
         dates = [d for d in Threadzuda.get_date_range(self.start_date, self.end_date) if
                  d.weekday() in weekdays and d not in self.holidays]
-        if double:
+        if duplicate:
             dates = [x for item in dates for x in repeat(item, 2)]
         return dates
 
