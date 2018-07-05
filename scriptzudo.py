@@ -62,11 +62,11 @@ def load_config():
         config_path = os.path.join(application_path, 'config.yaml_old')
         stream = open(config_path, 'r')
         yml = yaml.load(stream)
-        holidays = yml['feriados']
-        start_date = yml['data_inicio_semestre']
-        end_date = yml['data_fim_semestre']
-        user = yml['usuario']
-        password = yml['senha']
+        holidays = yml['holidays']
+        start_date = yml['start_date']
+        end_date = yml['end_date']
+        user = yml['user']
+        password = yml['password']
         stream.close()
         log.info('Configuração aplicada com sucesso.')
     except Exception:
@@ -136,16 +136,19 @@ def check_class_finished():
 
 # noinspection PyBroadException
 def register_lecture():
+    lecture_number = None;
     while not check_class_finished():
         lecture_number = int(
             driver.find_element_by_id("formListaAlunos:paginacao").find_element_by_tag_name("div").text.split()[0])
         lecture_week_days = all_week_days[driver.find_element_by_css_selector("#j_id35 > span").text]
         lecture_dates = get_class_dates(lecture_week_days)
+        if 5 in lecture_week_days:
+            lecture_dates *= 2
 
         try:
             week_day = lecture_dates[lecture_number]
         except IndexError:
-            week_day = lecture_dates[lecture_number-len(lecture_dates)]
+            break
 
         hdriver.until(EC.visibility_of_element_located((By.ID, "formListaAlunos:linkCadastrar")))
         driver.find_element_by_id("formListaAlunos:linkCadastrar").click()
@@ -212,9 +215,9 @@ def register_lecture():
         else:
             log.info('Cadastrando aula %d para a data %s...', lecture_number + 1, week_day.strftime("%d/%m/%Y"))
             driver.find_element_by_id("j_id210:assunto").clear()
-            driver.find_element_by_id("j_id210:assunto").send_keys("Gramática")
+            driver.find_element_by_id("j_id210:assunto").send_keys(u"Gramática")
             driver.find_element_by_id("j_id210:assuntoPart").clear()
-            driver.find_element_by_id("j_id210:assuntoPart").send_keys("Exercício")
+            driver.find_element_by_id("j_id210:assuntoPart").send_keys(u"Exercício")
             driver.find_element_by_id("j_id210:j_id228InputDate").clear()
             driver.find_element_by_id("j_id210:j_id228InputDate").send_keys(week_day.strftime("%d/%m/%Y"))
 
