@@ -13,6 +13,8 @@ import logging
 import traceback
 from threading import Thread
 
+import files
+
 sys.path.append(os.getcwd())
 
 if getattr(sys, 'frozen', False):
@@ -46,15 +48,15 @@ class Threadzuda(Thread):
         self.log.info('Carregando configuração...')
 
         try:
-            self.holidays = [datetime.datetime.strptime(x.strip(), '%d/%m/%Y') for x in
-                             self.config.holidays.strip().split('\n')]
-            self.start_date = datetime.datetime.strptime(self.config.semester_start, '%d/%m/%Y')
-            self.end_date = datetime.datetime.strptime(self.config.semester_end, '%d/%m/%Y')
+            print(self.config)
+            self.holidays = self.config.holidays
+            self.start_date = self.config.semester_start
+            self.end_date = self.config.semester_end
             self.user = self.config.user
             self.password = self.config.password
             self.log.info('Configuração aplicada com sucesso.')
 
-            self.driver = webdriver.Chrome()
+            self.driver = webdriver.Chrome(executable_path=files.get_internal_file('chromedriver'))
             self.hdriver = WebDriverWait(self.driver, 15)
         except Exception:
             self.log.error('Erro ao carregar configuração. Verifique as informações e tente novamente.')

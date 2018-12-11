@@ -1,52 +1,29 @@
-from kivy.app import App
-from kivy.uix.floatlayout import FloatLayout
+import datetime
+import sys
 import locale
+
+import qdarkstyle
+from PyQt5 import uic
+
 from config import Configuration
-from thread import Threadzuda
-from threading import Event
-from log import ConsolePanelHandler
 
-locale.setlocale(locale.LC_ALL, 'pt_BR')
+if not getattr(sys, 'frozen', False):
+    uic.compileUiDir('./ui')
 
-
-class RootWidget(FloatLayout):
-    pass
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QLocale
+from ui.window_main import MainWindow
 
 
-class MainApp(App):
-    def __init__(self):
-        super().__init__()
-        self.config = Configuration.load()
-        self.threadDone = Event()
-        self.thread = Threadzuda(self.config, self.threadDone)
+if __name__ == "__main__":
+    try:
+        locale.setlocale(locale.LC_ALL, "pt_BR")
+        QLocale.setDefault(QLocale('pt_BR'))
+    except:
+        pass
 
-    def start_stop(self):
-        if self.thread.is_alive():
-            self.threadDone.set()
-        elif self.thread.is_started():
-            self.threadDone = Event()
-            self.thread = Threadzuda(self.config, self.threadDone)
-            self.thread.start()
-        else:
-            self.thread.start()
-
-    def write_config(self, prop, value):
-        setattr(self.config, prop, value)
-        self.config.save()
-
-    def load_config(self, prop=None):
-        if prop is not None:
-            return getattr(self.config, prop)
-        return prop
-
-    def build(self):
-        self.title = 'Academicozudo'
-        return RootWidget()
-
-    def on_start(self):
-        super(MainApp, self).on_start()
-        ConsolePanelHandler(self.root.ids.log_input)
-
-
-if __name__ == '__main__':
-    MainApp().run()
+    app = QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())

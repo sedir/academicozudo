@@ -25,3 +25,14 @@ class ConsolePanelHandler(logging.Handler):
 
     def emit(self, record):
         self.parent.text += self.format(record) + "\n"
+
+
+class QtPanelHandler(logging.Handler):
+    def __init__(self, signal):
+        logging.Handler.__init__(self)
+        self.signal = signal
+        self.setFormatter(formatter)
+        logging.getLogger('academicozudo').addHandler(self)
+
+    def emit(self, record):
+        self.signal.emit(self.format(record) + "\n")

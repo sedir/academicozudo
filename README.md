@@ -1,24 +1,33 @@
 # Academicozudo
 
-Academicozudo é um script desenvolvido em Python para facilitar a realização de funções no sistema acadêmico da FUNCERN.
+Academicozudo é um software desenvolvido em Python e QT para facilitar a realização de funções no sistema acadêmico da FUNCERN.
 
 ### Dependências básicas:
 
-- `Python >= 3.4`
+- `Python == 3.6`
 - `pip`
-- `ChromeDriver`
+- `Qt == 5.11`
+- `PyQt == 5.11`
 
-### Preparação:
 
-- Instalar as dependências de bibliotecas `Python` via `pip`:
+### Como preparar build:
 
-`pip install -r requirements.txt`
+Em primeiro lugar, é necessário realizar as seguintes operações:
+- Instalar as dependências de bibliotecas `Python` via `pip`
+- Gerar módulos PyQt através do `uic`
+- Compilar módulos em linguagem nativa com o `Cython`
 
-- Copiar e alterar o arquivo de configuração:
+Para isso, execute a linha de comando abaixo:
 
-`cp config.yaml.sample config.yaml`
+`python setup.py build_ext --inplace`
 
 ### Como rodar:
 
 `python main.py`
 
+
+### Como distribuir:
+
+`pyinstaller.exe --onefile --windowed main.py`
+
+O executável compilado estará disponível na pasta `dist`

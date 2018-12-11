@@ -4,6 +4,8 @@ import datetime
 import os
 import sys
 
+import files
+
 
 class Configuration:
 
@@ -19,20 +21,15 @@ class Configuration:
         self.user = None
         self.password = None
 
-    def save(self, file='config.yaml'):
+    def save(self, file=files.get_root_file('config.yaml')):
         with open(file, 'w') as f:
             f.write(yaml.dump(self))
 
     @staticmethod
-    def load(file='config.yaml'):
+    def load(file=files.get_root_file('config.yaml')):
         # determine if application is a script file or frozen exe
-        if getattr(sys, 'frozen', False):
-            application_path = os.path.dirname(sys.executable)
-        elif __file__:
-            application_path = os.path.dirname(__file__)
-
         try:
-            config_path = os.path.join(application_path, file)
+            config_path = files.get_root_file(file)
             stream = open(config_path, 'r')
 
             config = yaml.load(stream)
@@ -40,4 +37,3 @@ class Configuration:
             config = Configuration()
 
         return config
-
