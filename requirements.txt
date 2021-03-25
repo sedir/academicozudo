@@ -6,7 +6,7 @@ idna==2.6
 Kivy==1.10.0
 Kivy-Garden==0.1.4
 Pygments==2.2.0
-PyYAML==3.12
+PyYAML==5.4
 requests==2.18.4
 selenium==2.53.6
 urllib3==1.22
