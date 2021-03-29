@@ -5,7 +5,7 @@ docutils==0.14
 idna==2.6
 Kivy==1.10.0
 Kivy-Garden==0.1.4
-Pygments==2.2.0
+Pygments==2.7.4
 PyYAML==3.12
 requests==2.18.4
 selenium==2.53.6
